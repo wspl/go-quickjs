@@ -18,7 +18,7 @@ func GoHandler(cctx *C.JSContext, cthis C.JSValueConst, cargc C.int, cargv *C.JS
 	for _, carg := range cargs {
 		args = append(args, ctx.WrapValue(carg))
 	}
-	result, err := ctx.functions[id].fn(args, this)
+	result, err := ctx.functions[id].(JSGoFunctionCallback)(args, this)
 	if err != nil {
 		return err.ref
 	}
@@ -41,12 +41,12 @@ func NewJSGoFunction(ctx *JSContext, fn JSGoFunctionCallback) *JSGoFunction {
 	return jsf
 }
 
-func (jsf *JSGoFunction) init () {
+func (jsf *JSGoFunction) init() {
 	wrapperScript := "(invokeGoFunction, id) => function () { return invokeGoFunction.call(this, id, arguments) }"
 	wrapperFn, _ := jsf.ctx.Eval(wrapperScript, "")
 
 	id := len(jsf.ctx.functions)
-	jsf.ctx.functions = append(jsf.ctx.functions, jsf)
+	jsf.ctx.functions = append(jsf.ctx.functions, jsf.fn)
 
 	wrapperArgs := []C.JSValue{
 		jsf.ctx.cFunction,
@@ -55,10 +55,10 @@ func (jsf *JSGoFunction) init () {
 	jsf.ref = C.JS_Call(jsf.ctx.ref, wrapperFn.ref, jsf.ctx.NewNull().ref, 2, &wrapperArgs[0])
 }
 
-func (jsf *JSGoFunction) Value () *JSValue {
+func (jsf *JSGoFunction) Value() *JSValue {
 	return jsf.ctx.WrapValue(jsf.ref)
 }
 
-func (jsf *JSGoFunction) Call (args []*JSValue, this *JSValue) *JSValue {
+func (jsf *JSGoFunction) Call(args []*JSValue, this *JSValue) *JSValue {
 	return jsf.Value().Call(args, this)
 }

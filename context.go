@@ -12,7 +12,7 @@ var ctxMap = make(map[*C.JSContext]*JSContext)
 
 type JSContext struct {
 	ref       *C.JSContext
-	functions []*JSGoFunction
+	functions []interface{}
 	cFunction C.JSValue
 	global    *JSValue
 }
@@ -20,7 +20,7 @@ type JSContext struct {
 func NewJSContext(runtime *JSRuntime) *JSContext {
 	ctx := new(JSContext)
 	ctx.ref = C.JS_NewContext(runtime.ref)
-	ctx.functions = []*JSGoFunction{}
+	ctx.functions = []interface{}{}
 	ctx.cFunction = C.JS_NewCFunction(ctx.ref, (*C.JSCFunction)(unsafe.Pointer(C.InvokeGoHandler)), nil, C.int(5))
 	ctx.global = ctx.WrapValue(C.JS_GetGlobalObject(ctx.ref))
 
@@ -112,18 +112,18 @@ func (ctx *JSContext) Exception() *JSError {
 }
 
 func (ctx *JSContext) Try() {
-	//fn := ctx.NewGoFunction(func(args []*JSValue, this *JSValue) (*JSValue, *JSValue) {
-	//	return ctx.NewString("Hello"), nil
-	//})
-	//ret := fn.Call([]*JSValue {ctx.NewString("Arg1"), ctx.NewBool(true)}, nil)
-	//println(ret.String())
-	ret, err := ctx.Eval("as", "")
-	if err != nil {
-		println("1", err.Message())
-	}
-	ret, err = ctx.Eval("const a = 1", "")
-	if err != nil {
-		println("2", err.Message())
-	}
+	fn := ctx.NewGoFunction(func(args []*JSValue, this *JSValue) (*JSValue, *JSError) {
+		return ctx.NewString("Hello"), nil
+	})
+	ret := fn.Call([]*JSValue{ctx.NewString("Arg1"), ctx.NewBool(true)}, nil)
 	println(ret.String())
+	//ret, err := ctx.Eval("as", "")
+	//if err != nil {
+	//	println("1", err.Message())
+	//}
+	//ret, err = ctx.Eval("const a = 1", "")
+	//if err != nil {
+	//	println("2", err.Message())
+	//}
+	//println(ret.String())
 }
