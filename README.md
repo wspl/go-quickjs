@@ -4,9 +4,9 @@ QuickJS engine bindings for Go.
 **Warning: At present, both the original project `quickjs` and this project are still in the early stage of development. Please use this project carefully in the production environment.**
 
 ## Features
-* Eval script
-* Eval bytecode in `[]byte`
-* Compile bytecode into `[]byte`
+* Evaluate script
+* Evaluate bytecode in `[]byte`
+* Compile script into bytecode in `[]byte`
 * Simple exception throwing and catching
 * Invoke Go function from JavaScript
 * Operate JavaScript values and objects in Go
