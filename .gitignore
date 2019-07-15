@@ -23,6 +23,6 @@
 /.idea/
 
 ### Project ###
-#libquickjs.a
+libquickjs.a
 /quickjs-source/
 quickjs-source.tar.xz
