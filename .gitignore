@@ -21,3 +21,8 @@
 
 ### Intellij ###
 /.idea/
+
+### Project ###
+#libquickjs.a
+/quickjs-source/
+quickjs-source.tar.xz
