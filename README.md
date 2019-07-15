@@ -12,7 +12,7 @@ QuickJS engine bindings for Go.
 * Operate JavaScript values and objects in Go
 
 ## Get Started
-Currently tested only on the Mac OS platform.
+Install: (MacOS tested only)
 ```bash
 wget https://raw.github.com/wspl/go-quickjs/master/install.sh && sh ./install.sh
 ```
