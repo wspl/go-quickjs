@@ -61,5 +61,10 @@ func main() {
 
 ```
 
-### License
+## TODOs
+- Test cases
+- Module support
+- Fix bugs
+
+## License
 [MIT](./LICENSE)
