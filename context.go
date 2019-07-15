@@ -40,9 +40,6 @@ func (ctx *JSContext) FreeValue(value *JSValue) {
 }
 
 func (ctx *JSContext) Free() {
-	for _, fn := range ctx.functions {
-		fn.Free()
-	}
 	ctx.FreeCValue(ctx.cFunction)
 	ctx.global.Free()
 	C.JS_FreeContext(ctx.ref)

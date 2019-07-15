@@ -44,6 +44,7 @@ func NewJSGoFunction(ctx *JSContext, fn JSGoFunctionCallback) *JSGoFunction {
 func (jsf *JSGoFunction) init() {
 	wrapperScript := "(invokeGoFunction, id) => function () { return invokeGoFunction.call(this, id, arguments) }"
 	wrapperFn, _ := jsf.ctx.Eval(wrapperScript, "")
+	defer wrapperFn.Free()
 
 	id := len(jsf.ctx.functions)
 	jsf.ctx.functions = append(jsf.ctx.functions, jsf)
@@ -63,8 +64,4 @@ func (jsf *JSGoFunction) Value() *JSValue {
 
 func (jsf *JSGoFunction) Call(args []*JSValue, this *JSValue) *JSValue {
 	return jsf.Value().Call(args, this)
-}
-
-func (jsf *JSGoFunction) Free() {
-	C.JS_FreeValue(jsf.ctx.ref, jsf.ref)
 }
