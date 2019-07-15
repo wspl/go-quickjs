@@ -1,16 +1,19 @@
 package main
 
 import (
-	"go-quickjs"
+	. "go-quickjs"
 )
 
 func main() {
-	runtime := quickjs.NewJSRuntime()
-	defer runtime.Free()
+	runtime := NewJSRuntime()
 	context := runtime.NewContext()
-	defer context.Free()
 
-	ret, err := context.Eval("'Hello ' + 'World!'", "")
+	fn := context.NewGoFunction(func(args []*JSValue, this *JSValue) (*JSValue, *JSError) {
+		println("Invoked!")
+		return context.NewString("Hello World"), nil
+	})
+	fn.Value().Expose("hello")
+	ret, err := context.Eval("hello", "")
 	if err != nil {
 		println(err.Message())
 	}

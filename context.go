@@ -14,7 +14,7 @@ var ctxMap = make(map[*C.JSContext]*JSContext)
 
 type JSContext struct {
 	ref       *C.JSContext
-	functions []interface{}
+	functions []*JSGoFunction
 	cFunction C.JSValue
 	global    *JSValue
 }
@@ -22,7 +22,7 @@ type JSContext struct {
 func NewJSContext(runtime *JSRuntime) *JSContext {
 	ctx := new(JSContext)
 	ctx.ref = C.JS_NewContext(runtime.ref)
-	ctx.functions = []interface{}{}
+	ctx.functions = []*JSGoFunction{}
 	ctx.cFunction = C.JS_NewCFunction(ctx.ref, (*C.JSCFunction)(unsafe.Pointer(C.InvokeGoHandler)), nil, C.int(5))
 	ctx.global = ctx.WrapValue(C.JS_GetGlobalObject(ctx.ref))
 
@@ -40,6 +40,9 @@ func (ctx *JSContext) FreeValue(value *JSValue) {
 }
 
 func (ctx *JSContext) Free() {
+	for _, fn := range ctx.functions {
+		fn.Free()
+	}
 	ctx.FreeCValue(ctx.cFunction)
 	ctx.global.Free()
 	C.JS_FreeContext(ctx.ref)

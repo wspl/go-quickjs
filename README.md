@@ -16,7 +16,7 @@ Currently tested only on the Mac OS platform.
 ```bash
 wget https://raw.github.com/wspl/go-quickjs/master/install.sh && sh ./install.sh
 ```
-Use go-quickjs in `main.go`:
+Hello world:
 ```go
 package main
 
@@ -34,6 +34,31 @@ func main() {
 	}
 	println(ret.String())
 }
+```
+Invoke Go function in JavaScript:
+```go
+package main
+
+import "github.com/wspl/go-quickjs"
+
+func main() {
+	runtime := NewJSRuntime()
+	context := runtime.NewContext()
+
+	fn := context.NewGoFunction(func(args []*JSValue, this *JSValue) (*JSValue, *JSError) {
+		println("Invoked!")
+		return context.NewString("Hello World"), nil
+	})
+	fn.Value().Expose("hello")
+	ret, err := context.Eval("hello", "")
+	if err != nil {
+		println(err.Message())
+	}
+	println(ret.String())
+
+	// releasing JSRuntime/JSContext are still buggy
+}
+
 ```
 
 ### License

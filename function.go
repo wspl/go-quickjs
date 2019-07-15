@@ -18,7 +18,7 @@ func GoHandler(cctx *C.JSContext, cthis C.JSValueConst, cargc C.int, cargv *C.JS
 	for _, carg := range cargs {
 		args = append(args, ctx.WrapValue(carg))
 	}
-	result, err := ctx.functions[id].(JSGoFunctionCallback)(args, this)
+	result, err := ctx.functions[id].fn(args, this)
 	if err != nil {
 		return err.ref
 	}
@@ -46,12 +46,14 @@ func (jsf *JSGoFunction) init() {
 	wrapperFn, _ := jsf.ctx.Eval(wrapperScript, "")
 
 	id := len(jsf.ctx.functions)
-	jsf.ctx.functions = append(jsf.ctx.functions, jsf.fn)
+	jsf.ctx.functions = append(jsf.ctx.functions, jsf)
 
+	idVal := jsf.ctx.NewInt32(int32(id))
 	wrapperArgs := []C.JSValue{
 		jsf.ctx.cFunction,
-		jsf.ctx.NewInt32(int32(id)).ref,
+		idVal.ref,
 	}
+
 	jsf.ref = C.JS_Call(jsf.ctx.ref, wrapperFn.ref, jsf.ctx.NewNull().ref, 2, &wrapperArgs[0])
 }
 
@@ -61,4 +63,8 @@ func (jsf *JSGoFunction) Value() *JSValue {
 
 func (jsf *JSGoFunction) Call(args []*JSValue, this *JSValue) *JSValue {
 	return jsf.Value().Call(args, this)
+}
+
+func (jsf *JSGoFunction) Free() {
+	C.JS_FreeValue(jsf.ctx.ref, jsf.ref)
 }
