@@ -6,7 +6,9 @@ package quickjs
 #include "quickjs-bridge.h"
 */
 import "C"
-import "unsafe"
+import (
+	"unsafe"
+)
 
 var ctxMap = make(map[*C.JSContext]*JSContext)
 
@@ -29,6 +31,20 @@ func NewJSContext(runtime *JSRuntime) *JSContext {
 	return ctx
 }
 
+func (ctx *JSContext) FreeCValue(value C.JSValue) {
+	C.JS_FreeValue(ctx.ref, value)
+}
+
+func (ctx *JSContext) FreeValue(value *JSValue) {
+	C.JS_FreeValue(ctx.ref, value.ref)
+}
+
+func (ctx *JSContext) Free() {
+	ctx.FreeCValue(ctx.cFunction)
+	ctx.global.Free()
+	C.JS_FreeContext(ctx.ref)
+}
+
 func (ctx *JSContext) Eval(script string, filename string) (*JSValue, *JSError) {
 	scriptCstr := C.CString(script)
 	defer C.free(unsafe.Pointer(scriptCstr))
@@ -43,6 +59,35 @@ func (ctx *JSContext) Eval(script string, filename string) (*JSValue, *JSError) 
 		return ret, e
 	}
 	return ret, nil
+}
+
+func (ctx *JSContext) EvalBinary(buf []byte) (*JSValue, *JSError) {
+	ret := ctx.WrapValue(C.JS_EvalBinary(ctx.ref, (*C.uchar)(unsafe.Pointer(&buf[0])), C.size_t(len(buf)), C.int(0)))
+	e := ctx.Exception()
+	if e != nil {
+		return ret, e
+	}
+	return ret, nil
+}
+
+func (ctx *JSContext) Binary(script string, filename string) []byte {
+	scriptCstr := C.CString(script)
+	defer C.free(unsafe.Pointer(scriptCstr))
+	scriptClen := C.ulong(len(script))
+
+	filenameCstr := C.CString(filename)
+	defer C.free(unsafe.Pointer(filenameCstr))
+
+	obj := C.JS_Eval(
+		ctx.ref,
+		scriptCstr,
+		scriptClen,
+		filenameCstr,
+		C.JS_EVAL_FLAG_SHEBANG|C.JS_EVAL_FLAG_COMPILE_ONLY|C.JS_EVAL_TYPE_GLOBAL,
+	)
+	outBufLen := C.size_t(0)
+	outBuf := C.JS_WriteObject(ctx.ref, &outBufLen, obj, C.JS_WRITE_OBJ_BYTECODE)
+	return C.GoBytes(unsafe.Pointer(outBuf), C.int(outBufLen))
 }
 
 func (ctx *JSContext) Global() *JSValue {
@@ -71,6 +116,10 @@ func (ctx *JSContext) NewInt64(int int64) *JSValue {
 
 func (ctx *JSContext) NewFloat64(double float64) *JSValue {
 	return ctx.WrapValue(C.JS_NewFloat64(ctx.ref, C.double(double)))
+}
+
+func (ctx *JSContext) NewObject() *JSValue {
+	return ctx.WrapValue(C.JS_NewObject(ctx.ref))
 }
 
 func (ctx *JSContext) NewString(string string) *JSValue {
@@ -112,18 +161,12 @@ func (ctx *JSContext) Exception() *JSError {
 }
 
 func (ctx *JSContext) Try() {
-	fn := ctx.NewGoFunction(func(args []*JSValue, this *JSValue) (*JSValue, *JSError) {
-		return ctx.NewString("Hello"), nil
-	})
-	ret := fn.Call([]*JSValue{ctx.NewString("Arg1"), ctx.NewBool(true)}, nil)
+	obj := ctx.NewObject()
+	obj.SetProperty("a", ctx.NewInt64(22444))
+	obj.SetProperty("b", ctx.NewString("Hello"))
+	obj.Expose("obj")
+	buf := ctx.Binary("JSON.stringify(obj)", "")
+	println(string(buf))
+	ret, _ := ctx.EvalBinary(buf)
 	println(ret.String())
-	//ret, err := ctx.Eval("as", "")
-	//if err != nil {
-	//	println("1", err.Message())
-	//}
-	//ret, err = ctx.Eval("const a = 1", "")
-	//if err != nil {
-	//	println("2", err.Message())
-	//}
-	//println(ret.String())
 }

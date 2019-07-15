@@ -5,11 +5,12 @@ import "unsafe"
 /*
 #cgo CFLAGS: -I.
 #cgo LDFLAGS: -L. -lquickjs
-#include <quickjs-libc.h>
+#include "quickjs-bridge.h"
 */
 import "C"
 
 var valueMap = make(map[*C.JSValue]JSValue)
+
 type JSValue struct {
 	ref C.JSValue
 	ctx *JSContext
@@ -20,6 +21,10 @@ func NewJSValue(ctx *JSContext, cval C.JSValue) *JSValue {
 	val.ref = cval
 	val.ctx = ctx
 	return val
+}
+
+func (val *JSValue) Free() {
+	C.JS_FreeValue(val.ctx.ref, val.ref)
 }
 
 func (val *JSValue) AttachContext(ctx *JSContext) {
@@ -142,22 +147,26 @@ func (val *JSValue) Call(args []*JSValue, this *JSValue) *JSValue {
 	return val.ctx.WrapValue(C.JS_Call(val.ctx.ref, val.ref, this.ref, C.int(len(args)), &cargs[0]))
 }
 
-func (val *JSValue) PropertyByInt (key int) *JSValue {
+func (val *JSValue) PropertyByInt(key int) *JSValue {
 	return val.ctx.WrapValue(C.JS_GetPropertyUint32(val.ctx.ref, val.ref, C.uint32_t(key)))
 }
 
-func (val *JSValue) Property (key string) *JSValue {
+func (val *JSValue) Property(key string) *JSValue {
 	cstr := C.CString(key)
 	defer C.free(unsafe.Pointer(cstr))
 	return val.ctx.WrapValue(C.JS_GetPropertyStr(val.ctx.ref, val.ref, cstr))
 }
 
-func (val *JSValue) SetPropertyByInt (key int, value *JSValue) {
+func (val *JSValue) SetPropertyByInt(key int, value *JSValue) {
 	C.JS_SetPropertyInt64(val.ctx.ref, val.ref, C.int64_t(key), value.ref)
 }
 
-func (val *JSValue) SetProperty (key string, value *JSValue) {
+func (val *JSValue) SetProperty(key string, value *JSValue) {
 	cstr := C.CString(key)
 	defer C.free(unsafe.Pointer(cstr))
 	C.JS_SetPropertyStr(val.ctx.ref, val.ref, cstr, value.ref)
+}
+
+func (val *JSValue) Expose(name string) {
+	val.ctx.global.SetProperty(name, val)
 }

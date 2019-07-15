@@ -1,4 +1,5 @@
 package quickjs
+
 /*
 #cgo CFLAGS: -I.
 #cgo LDFLAGS: -L. -lquickjs
