@@ -17,7 +17,7 @@ rm -rf ./quickjs-source
 
 wget -O quickjs-source.tar.xz $quickjs
 mkdir quickjs-source
-tar zxvf quickjs-source.tar.xz -C quickjs-source
+tar xvf quickjs-source.tar.xz -C quickjs-source
 
 cd quickjs-source/quickjs*
 sed -i -e '37d' ./Makefile
