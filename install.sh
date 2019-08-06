@@ -1,7 +1,7 @@
 #!/bin/sh
 go_quickjs="github.com/wspl/go-quickjs"
 install_dir="$GOPATH/src/$go_quickjs"
-quickjs="https://bellard.org/quickjs/quickjs-2019-07-09.tar.xz"
+quickjs="https://bellard.org/quickjs/quickjs-2019-07-28.tar.xz"
 
 old_pwd=$(pwd)
 
@@ -20,6 +20,10 @@ mkdir quickjs-source
 tar xvf quickjs-source.tar.xz -C quickjs-source
 
 cd quickjs-source/quickjs*
+
+cp quickjs.h $install_dir
+cp quickjs-libc.h $install_dir
+
 sed -i -e '37d' ./Makefile
 make
 cp libquickjs.a $install_dir

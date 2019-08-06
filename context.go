@@ -83,7 +83,7 @@ func (ctx *JSContext) Binary(script string, filename string) []byte {
 		scriptCstr,
 		scriptClen,
 		filenameCstr,
-		C.JS_EVAL_FLAG_SHEBANG|C.JS_EVAL_FLAG_COMPILE_ONLY|C.JS_EVAL_TYPE_GLOBAL,
+		C.JS_EVAL_TYPE_MODULE|C.JS_EVAL_FLAG_COMPILE_ONLY,
 	)
 	outBufLen := C.size_t(0)
 	outBuf := C.JS_WriteObject(ctx.ref, &outBufLen, obj, C.JS_WRITE_OBJ_BYTECODE)

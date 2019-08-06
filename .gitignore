@@ -23,6 +23,8 @@
 /.idea/
 
 ### Project ###
+quickjs.h
+quickjs-libc.h
 libquickjs.a
 /quickjs-source/
 quickjs-source.tar.xz
