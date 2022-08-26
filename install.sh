@@ -1,7 +1,7 @@
 #!/bin/sh
 go_quickjs="github.com/wspl/go-quickjs"
 install_dir="$GOPATH/src/$go_quickjs"
-quickjs="https://bellard.org/quickjs/quickjs-2019-07-28.tar.xz"
+quickjs="https://bellard.org/quickjs/quickjs-2021-03-27.tar.xz"
 
 old_pwd=$(pwd)
 
